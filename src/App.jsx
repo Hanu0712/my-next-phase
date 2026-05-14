@@ -446,6 +446,47 @@ export default function App(){
         </div>
       )}
 
+      {/* バックアップ */}
+      <div style={{padding:"20px 16px",borderTop:"1px solid #EDE4D8",background:"#FDFAF6"}}>
+        <div style={{maxWidth:520,margin:"0 auto"}}>
+          <div style={{fontFamily:"'Shippori Mincho B1',serif",fontSize:12,color:"#6B5E54",textAlign:"center",marginBottom:8,letterSpacing:1}}>バックアップ</div>
+          <div style={{fontSize:10,color:"#9B8E82",textAlign:"center",marginBottom:12,lineHeight:1.8}}>データは端末ごとに保存されます。<br/>定期的に保存し、別端末で復元できます。</div>
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={()=>{
+              const data={};
+              ["np3-ent","np3-todos","np3-slogan","np3-fpages","np3-ipages","np3-paid"].forEach(k=>{const v=localStorage.getItem(k);if(v!==null)data[k]=v;});
+              const blob=new Blob([JSON.stringify({app:"my-next-phase",version:1,exportedAt:new Date().toISOString(),data},null,2)],{type:"application/json"});
+              const url=URL.createObjectURL(blob);
+              const a=document.createElement("a");
+              const d=new Date();
+              a.href=url;
+              a.download=`my-next-phase-backup-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}-${String(d.getHours()).padStart(2,"0")}${String(d.getMinutes()).padStart(2,"0")}.json`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              setTimeout(()=>URL.revokeObjectURL(url),1000);
+            }} style={{flex:1,padding:"10px",border:"1px solid #C9A96E",background:"white",color:"#C9A96E",borderRadius:8,fontSize:12,fontFamily:"inherit",cursor:"pointer"}}>📥 バックアップを保存</button>
+            <label style={{flex:1,padding:"10px",border:"1px solid #C9A96E",background:"white",color:"#C9A96E",borderRadius:8,fontSize:12,fontFamily:"inherit",cursor:"pointer",textAlign:"center"}}>
+              📤 バックアップから復元
+              <input type="file" accept="application/json,.json" hidden onChange={async e=>{
+                const f=e.target.files?.[0];
+                if(!f){return;}
+                if(!confirm("現在のデータは上書きされます。続行しますか？")){e.target.value="";return;}
+                try{
+                  const text=await f.text();
+                  const obj=JSON.parse(text);
+                  const data=obj.data||obj;
+                  Object.keys(data).forEach(k=>{if(k.startsWith("np3-"))localStorage.setItem(k,data[k]);});
+                  alert("復元しました。画面を更新します。");
+                  location.reload();
+                }catch(err){alert("ファイルの読み込みに失敗しました: "+err.message);}
+                e.target.value="";
+              }}/>
+            </label>
+          </div>
+        </div>
+      </div>
+
       <footer style={{textAlign:"center",padding:"24px 16px 30px",borderTop:"1px solid #EDE4D8"}}>
         <div style={{fontFamily:"'Shippori Mincho B1',serif",fontSize:13,color:"#6B5E54",lineHeight:2,letterSpacing:1}}>あの日の決断を、誇りに思え。</div>
         <div style={{fontFamily:"'Shippori Mincho B1',serif",fontSize:12,color:"#9B8E82",marginTop:4}}>この手帳には、「輝かしい未来」「希望」しかない。</div>
