@@ -264,7 +264,7 @@ export default function App(){
               {freePages.map((p,i)=>(
                 <div key={p.id} onClick={()=>setEditFP(i)} style={{background:"white",borderRadius:9,padding:"12px 14px",border:"1px solid #EDE4D8",marginBottom:6,cursor:"pointer"}}>
                   <div style={{fontSize:10,color:"#C9A96E",marginBottom:4,fontFamily:"'Cormorant Garamond',serif",letterSpacing:1}}>{p.date}</div>
-                  <div style={{fontSize:12,color:p.text?"#2C2420":"#C4B8AB",lineHeight:1.6,overflow:"hidden",maxHeight:48}}>{p.text||"（未記入）"}</div>
+                  <div style={{fontSize:12,color:p.text?"#2C2420":"#C4B8AB",lineHeight:1.6,whiteSpace:"pre-wrap",wordBreak:"break-word"}}>{p.text||"（未記入）"}</div>
                 </div>
               ))}
             </div>
@@ -326,7 +326,7 @@ export default function App(){
               {idealPages.map((p,i)=>(
                 <div key={p.id} onClick={()=>setEditIP(i)} style={{background:"white",borderRadius:9,padding:"12px 14px",border:"1px solid #EDE4D8",marginBottom:6,cursor:"pointer"}}>
                   <div style={{fontSize:10,color:"#C9A96E",marginBottom:4,fontFamily:"'Cormorant Garamond',serif",letterSpacing:1}}>{p.date}</div>
-                  <div style={{fontSize:12,color:p.text?"#2C2420":"#C4B8AB",lineHeight:1.6,overflow:"hidden",maxHeight:48}}>{p.text||"（未記入）"}</div>
+                  <div style={{fontSize:12,color:p.text?"#2C2420":"#C4B8AB",lineHeight:1.6,whiteSpace:"pre-wrap",wordBreak:"break-word"}}>{p.text||"（未記入）"}</div>
                   {p.media&&p.media.length>0&&<div style={{fontSize:9,color:"#C9A96E",marginTop:3}}>📷 {p.media.length}枚</div>}
                 </div>
               ))}
