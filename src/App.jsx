@@ -388,13 +388,13 @@ export default function App(){
             {/* ② 心の声 */}
             <div style={{padding:"12px 16px",borderBottom:"1px solid #EDE4D8"}}>
               <div style={{fontSize:11,fontWeight:600,color:"#2C2420",marginBottom:6,fontFamily:"'Shippori Mincho B1',serif"}}>② 心の声</div>
-              <textarea value={dDiary} ref={el=>{if(el){const m=window.innerHeight*0.4;el.style.height='auto';el.style.height=Math.min(el.scrollHeight,m)+'px';}}} onChange={e=>{setDDiary(e.target.value);const m=window.innerHeight*0.4;e.target.style.height='auto';e.target.style.height=Math.min(e.target.scrollHeight,m)+'px';}} placeholder="今日感じたこと、心の中のつぶやき…" style={{width:"100%",minHeight:80,maxHeight:"40vh",border:"1px solid #EDE4D8",borderRadius:8,padding:10,fontSize:12,fontFamily:"inherit",background:"white",resize:"vertical",lineHeight:1.8,color:"#2C2420",overflow:"auto"}}/>
+              <textarea value={dDiary} onChange={e=>setDDiary(e.target.value)} placeholder="今日感じたこと、心の中のつぶやき…" style={{width:"100%",minHeight:80,border:"1px solid #EDE4D8",borderRadius:8,padding:10,fontSize:12,fontFamily:"inherit",background:"white",resize:"vertical",lineHeight:1.8,color:"#2C2420"}}/>
             </div>
 
             {/* ③ 自由記載 */}
             <div style={{padding:"12px 16px"}}>
               <div style={{fontSize:11,fontWeight:600,color:"#2C2420",marginBottom:6,fontFamily:"'Shippori Mincho B1',serif"}}>③ 自由メモ</div>
-              <textarea value={dNote} ref={el=>{if(el){const m=window.innerHeight*0.4;el.style.height='auto';el.style.height=Math.min(el.scrollHeight,m)+'px';}}} onChange={e=>{setDNote(e.target.value);const m=window.innerHeight*0.4;e.target.style.height='auto';e.target.style.height=Math.min(e.target.scrollHeight,m)+'px';}} placeholder="なんでも自由に…" style={{width:"100%",minHeight:70,maxHeight:"40vh",border:"1px solid #EDE4D8",borderRadius:8,padding:10,fontSize:12,fontFamily:"inherit",background:"white",resize:"vertical",lineHeight:1.8,color:"#2C2420",overflow:"auto"}}/>
+              <textarea value={dNote} onChange={e=>setDNote(e.target.value)} placeholder="なんでも自由に…" style={{width:"100%",minHeight:70,border:"1px solid #EDE4D8",borderRadius:8,padding:10,fontSize:12,fontFamily:"inherit",background:"white",resize:"vertical",lineHeight:1.8,color:"#2C2420"}}/>
             </div>
 
             {/* 写真・動画 */}
