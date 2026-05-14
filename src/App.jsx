@@ -220,7 +220,7 @@ export default function App(){
                 <span style={{fontSize:11,color:"#9B8E82"}}>{freePages[editFP]?.date}</span>
                 <button onClick={()=>{setEditFP(null);setSesFP([]);}} style={{fontSize:11,color:"#9B8E82",border:"none",background:"transparent",cursor:"pointer",fontFamily:"inherit"}}>← 一覧に戻る</button>
               </div>
-              <textarea value={freePages[editFP]?.text||""} ref={el=>{if(el){el.style.height='auto';el.style.height=el.scrollHeight+'px';}}} onChange={e=>{const u=[...freePages];u[editFP]={...u[editFP],text:e.target.value};setFreePages(u);try{localStorage.setItem("np3-fpages",JSON.stringify(u));}catch{};e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px';}} style={{width:"100%",minHeight:"30vh",border:"1px solid #EDE4D8",borderRadius:10,padding:16,fontSize:14,fontFamily:"inherit",background:"white",resize:"vertical",lineHeight:2.2,color:"#2C2420",overflow:"hidden"}}/>
+              <textarea value={freePages[editFP]?.text||""} ref={el=>{if(el){const m=window.innerHeight*0.6;el.style.height='auto';el.style.height=Math.min(el.scrollHeight,m)+'px';}}} onChange={e=>{const u=[...freePages];u[editFP]={...u[editFP],text:e.target.value};setFreePages(u);try{localStorage.setItem("np3-fpages",JSON.stringify(u));}catch{};const m=window.innerHeight*0.6;e.target.style.height='auto';e.target.style.height=Math.min(e.target.scrollHeight,m)+'px';}} style={{width:"100%",minHeight:"30vh",maxHeight:"60vh",border:"1px solid #EDE4D8",borderRadius:10,padding:16,fontSize:14,fontFamily:"inherit",background:"white",resize:"vertical",lineHeight:2.2,color:"#2C2420",overflow:"auto"}}/>
               <div style={{marginTop:12}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
                   <span style={{fontFamily:"'Shippori Mincho B1',serif",fontSize:12,color:"#2C2420"}}>写真・動画</span>
@@ -282,7 +282,7 @@ export default function App(){
                 <span style={{fontSize:11,color:"#9B8E82"}}>{idealPages[editIP]?.date}</span>
                 <button onClick={()=>{setEditIP(null);setSesIP([]);}} style={{fontSize:11,color:"#9B8E82",border:"none",background:"transparent",cursor:"pointer",fontFamily:"inherit"}}>← 一覧に戻る</button>
               </div>
-              <textarea value={idealPages[editIP]?.text||""} ref={el=>{if(el){el.style.height='auto';el.style.height=el.scrollHeight+'px';}}} onChange={e=>{const u=[...idealPages];u[editIP]={...u[editIP],text:e.target.value};setIdealPages(u);try{localStorage.setItem("np3-ipages",JSON.stringify(u));}catch{};e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px';}} style={{width:"100%",minHeight:"30vh",border:"1px solid #EDE4D8",borderRadius:10,padding:16,fontSize:14,fontFamily:"inherit",background:"white",resize:"vertical",lineHeight:2.2,color:"#2C2420",overflow:"hidden"}}/>
+              <textarea value={idealPages[editIP]?.text||""} ref={el=>{if(el){const m=window.innerHeight*0.6;el.style.height='auto';el.style.height=Math.min(el.scrollHeight,m)+'px';}}} onChange={e=>{const u=[...idealPages];u[editIP]={...u[editIP],text:e.target.value};setIdealPages(u);try{localStorage.setItem("np3-ipages",JSON.stringify(u));}catch{};const m=window.innerHeight*0.6;e.target.style.height='auto';e.target.style.height=Math.min(e.target.scrollHeight,m)+'px';}} style={{width:"100%",minHeight:"30vh",maxHeight:"60vh",border:"1px solid #EDE4D8",borderRadius:10,padding:16,fontSize:14,fontFamily:"inherit",background:"white",resize:"vertical",lineHeight:2.2,color:"#2C2420",overflow:"auto"}}/>
               <div style={{marginTop:12}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
                   <span style={{fontFamily:"'Shippori Mincho B1',serif",fontSize:12,color:"#2C2420"}}>写真・動画</span>
@@ -388,13 +388,13 @@ export default function App(){
             {/* ② 心の声 */}
             <div style={{padding:"12px 16px",borderBottom:"1px solid #EDE4D8"}}>
               <div style={{fontSize:11,fontWeight:600,color:"#2C2420",marginBottom:6,fontFamily:"'Shippori Mincho B1',serif"}}>② 心の声</div>
-              <textarea value={dDiary} ref={el=>{if(el){el.style.height='auto';el.style.height=el.scrollHeight+'px';}}} onChange={e=>{setDDiary(e.target.value);e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px';}} placeholder="今日感じたこと、心の中のつぶやき…" style={{width:"100%",minHeight:80,border:"1px solid #EDE4D8",borderRadius:8,padding:10,fontSize:12,fontFamily:"inherit",background:"white",resize:"vertical",lineHeight:1.8,color:"#2C2420",overflow:"hidden"}}/>
+              <textarea value={dDiary} ref={el=>{if(el){const m=window.innerHeight*0.4;el.style.height='auto';el.style.height=Math.min(el.scrollHeight,m)+'px';}}} onChange={e=>{setDDiary(e.target.value);const m=window.innerHeight*0.4;e.target.style.height='auto';e.target.style.height=Math.min(e.target.scrollHeight,m)+'px';}} placeholder="今日感じたこと、心の中のつぶやき…" style={{width:"100%",minHeight:80,maxHeight:"40vh",border:"1px solid #EDE4D8",borderRadius:8,padding:10,fontSize:12,fontFamily:"inherit",background:"white",resize:"vertical",lineHeight:1.8,color:"#2C2420",overflow:"auto"}}/>
             </div>
 
             {/* ③ 自由記載 */}
             <div style={{padding:"12px 16px"}}>
               <div style={{fontSize:11,fontWeight:600,color:"#2C2420",marginBottom:6,fontFamily:"'Shippori Mincho B1',serif"}}>③ 自由メモ</div>
-              <textarea value={dNote} ref={el=>{if(el){el.style.height='auto';el.style.height=el.scrollHeight+'px';}}} onChange={e=>{setDNote(e.target.value);e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px';}} placeholder="なんでも自由に…" style={{width:"100%",minHeight:70,border:"1px solid #EDE4D8",borderRadius:8,padding:10,fontSize:12,fontFamily:"inherit",background:"white",resize:"vertical",lineHeight:1.8,color:"#2C2420",overflow:"hidden"}}/>
+              <textarea value={dNote} ref={el=>{if(el){const m=window.innerHeight*0.4;el.style.height='auto';el.style.height=Math.min(el.scrollHeight,m)+'px';}}} onChange={e=>{setDNote(e.target.value);const m=window.innerHeight*0.4;e.target.style.height='auto';e.target.style.height=Math.min(e.target.scrollHeight,m)+'px';}} placeholder="なんでも自由に…" style={{width:"100%",minHeight:70,maxHeight:"40vh",border:"1px solid #EDE4D8",borderRadius:8,padding:10,fontSize:12,fontFamily:"inherit",background:"white",resize:"vertical",lineHeight:1.8,color:"#2C2420",overflow:"auto"}}/>
             </div>
 
             {/* 写真・動画 */}
