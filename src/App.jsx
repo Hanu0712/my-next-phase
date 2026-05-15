@@ -159,7 +159,7 @@ export default function App(){
 
       {/* Tabs */}
       <div style={{display:"flex",padding:"5px 12px",background:"#FDFAF6",borderBottom:"1px solid #EDE4D8",gap:2}}>
-        {[{id:"cal",l:"📅 カレンダー"},{id:"todo",l:"✏️ 私の理想"},{id:"free",l:"📝 自由ノート"}].map(t=>(
+        {[{id:"cal",l:"📅 カレンダー"},{id:"todo",l:"✏️ 私の理想"},{id:"free",l:"📝 自由ノート"},{id:"all",l:"📖 全記録"}].map(t=>(
           <button key={t.id} onClick={()=>setTab(t.id)} style={{padding:"6px 12px",border:"none",borderRadius:6,fontSize:11,cursor:"pointer",fontFamily:"inherit",background:tab===t.id?"#2C2420":"transparent",color:tab===t.id?"#F7F2EB":"#9B8E82",fontWeight:tab===t.id?700:400}}>{t.l}</button>))}
       </div>
 
@@ -335,6 +335,58 @@ export default function App(){
         </div>
       )}
 
+      {/* 全記録 */}
+      {tab==="all"&&(
+        <div style={{padding:16,maxWidth:560,margin:"0 auto",animation:"fi .3s"}}>
+          <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:22,fontWeight:300,textAlign:"center",letterSpacing:3,marginBottom:6}}>ALL RECORDS</h2>
+          <p style={{textAlign:"center",fontSize:10,color:"#9B8E82",marginBottom:16}}>書いたものを全部ここで見られます。タップで編集できます。</p>
+
+          {/* 日々の記録 */}
+          <div style={{marginBottom:24}}>
+            <div style={{fontFamily:"'Shippori Mincho B1',serif",fontSize:13,color:"#6B5E54",borderBottom:"1px solid #EDE4D8",paddingBottom:6,marginBottom:10}}>📅 日々の記録</div>
+            {Object.keys(ent).filter(k=>{const e=ent[k];return e&&(e.diary||e.note||e.weather||(e.todos&&e.todos.length)||(e.media&&e.media.length));}).sort().reverse().map(ds=>{const e=ent[ds];return(
+              <div key={ds} onClick={()=>openDay(ds)} style={{background:"white",borderRadius:9,padding:"12px 14px",border:"1px solid #EDE4D8",marginBottom:8,cursor:"pointer"}}>
+                <div style={{display:"flex",alignItems:"baseline",gap:8,marginBottom:6}}>
+                  <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:14,color:"#C9A96E",letterSpacing:1}}>{ds.replace(/-/g,".")}</span>
+                  {e.weather&&<span style={{fontSize:14}}>{e.weather}</span>}
+                </div>
+                {e.todos&&e.todos.length>0&&(
+                  <div style={{marginBottom:6}}>
+                    {e.todos.map(t=>(<div key={t.id} style={{fontSize:12,color:t.d?"#9B8E82":"#2C2420",textDecoration:t.d?"line-through":"none",lineHeight:1.6}}>{t.d?"☑":"☐"} {t.t}</div>))}
+                  </div>
+                )}
+                {e.diary&&<div style={{fontSize:12,color:"#2C2420",lineHeight:1.8,whiteSpace:"pre-wrap",wordBreak:"break-word",marginBottom:6,padding:"6px 8px",background:"#FDFAF6",borderRadius:6}}>{e.diary}</div>}
+                {e.note&&<div style={{fontSize:12,color:"#2C2420",lineHeight:1.8,whiteSpace:"pre-wrap",wordBreak:"break-word",marginBottom:6,padding:"6px 8px",background:"#FDFAF6",borderRadius:6}}>{e.note}</div>}
+                {e.media&&e.media.length>0&&<div style={{fontSize:10,color:"#C9A96E"}}>📷 {e.media.length}枚</div>}
+              </div>);})}
+            {Object.keys(ent).filter(k=>{const e=ent[k];return e&&(e.diary||e.note||e.weather||(e.todos&&e.todos.length)||(e.media&&e.media.length));}).length===0&&<div style={{textAlign:"center",color:"#C4B8AB",fontSize:12,padding:"16px 0"}}>まだ記録がありません</div>}
+          </div>
+
+          {/* 私の理想 */}
+          <div style={{marginBottom:24}}>
+            <div style={{fontFamily:"'Shippori Mincho B1',serif",fontSize:13,color:"#6B5E54",borderBottom:"1px solid #EDE4D8",paddingBottom:6,marginBottom:10}}>✏️ 私の理想</div>
+            {idealPages.length===0?<div style={{textAlign:"center",color:"#C4B8AB",fontSize:12,padding:"16px 0"}}>まだ記録がありません</div>:idealPages.map((p,i)=>(
+              <div key={p.id} onClick={()=>{setTab("todo");setEditIP(i);}} style={{background:"white",borderRadius:9,padding:"12px 14px",border:"1px solid #EDE4D8",marginBottom:8,cursor:"pointer"}}>
+                <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:11,color:"#C9A96E",letterSpacing:1,marginBottom:6}}>{p.date}</div>
+                <div style={{fontSize:12,color:p.text?"#2C2420":"#C4B8AB",lineHeight:1.8,whiteSpace:"pre-wrap",wordBreak:"break-word"}}>{p.text||"（未記入）"}</div>
+                {p.media&&p.media.length>0&&<div style={{fontSize:10,color:"#C9A96E",marginTop:4}}>📷 {p.media.length}枚</div>}
+              </div>
+            ))}
+          </div>
+
+          {/* 自由ノート */}
+          <div style={{marginBottom:24}}>
+            <div style={{fontFamily:"'Shippori Mincho B1',serif",fontSize:13,color:"#6B5E54",borderBottom:"1px solid #EDE4D8",paddingBottom:6,marginBottom:10}}>📝 自由ノート</div>
+            {freePages.length===0?<div style={{textAlign:"center",color:"#C4B8AB",fontSize:12,padding:"16px 0"}}>まだ記録がありません</div>:freePages.map((p,i)=>(
+              <div key={p.id} onClick={()=>{setTab("free");setEditFP(i);}} style={{background:"white",borderRadius:9,padding:"12px 14px",border:"1px solid #EDE4D8",marginBottom:8,cursor:"pointer"}}>
+                <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:11,color:"#C9A96E",letterSpacing:1,marginBottom:6}}>{p.date}</div>
+                <div style={{fontSize:12,color:p.text?"#2C2420":"#C4B8AB",lineHeight:1.8,whiteSpace:"pre-wrap",wordBreak:"break-word"}}>{p.text||"（未記入）"}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── JOURNAL MODAL (redesigned) ── */}
       {sel&&(
         <div style={{position:"fixed",inset:0,background:"rgba(44,36,32,.5)",backdropFilter:"blur(5px)",display:"flex",alignItems:"flex-start",justifyContent:"center",zIndex:1000,padding:"3vh 10px",overflowY:"auto"}} onClick={()=>setSel(null)}>
@@ -380,8 +432,8 @@ export default function App(){
               {dTodos.map(t=>(
                 <div key={t.id} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 0",borderBottom:"1px solid #F0E8E0"}}>
                   <button onClick={()=>togDTodo(t.id)} style={{border:"none",background:"transparent",fontSize:14,cursor:"pointer",padding:0}}>{t.d?"☑":"☐"}</button>
-                  <span style={{flex:1,fontSize:12,textDecoration:t.d?"line-through":"none",color:t.d?"#9B8E82":"#2C2420"}}>{t.t}</span>
-                  <button onClick={()=>delDTodo(t.id)} style={{border:"none",background:"transparent",color:"#C4B8AB",fontSize:12,cursor:"pointer",opacity:.5}}>×</button>
+                  <input value={t.t} onChange={e=>{const v=e.target.value;setDTodos(prev=>prev.map(x=>x.id===t.id?{...x,t:v}:x));}} style={{flex:1,minWidth:0,fontSize:12,border:"none",background:"transparent",textDecoration:t.d?"line-through":"none",color:t.d?"#9B8E82":"#2C2420",fontFamily:"inherit",outline:"none",padding:0}}/>
+                  <button onClick={()=>delDTodo(t.id)} style={{border:"none",background:"transparent",color:"#C4B8AB",fontSize:14,cursor:"pointer",opacity:.6,padding:"0 4px"}}>×</button>
                 </div>))}
             </div>
 
