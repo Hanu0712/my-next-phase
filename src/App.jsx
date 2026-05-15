@@ -437,10 +437,10 @@ export default function App(){
                 <button onClick={addDTodo} style={{width:30,height:30,border:"none",background:"#2C2420",color:"#F7F2EB",borderRadius:6,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>+</button>
               </div>
               {dTodos.map(t=>(
-                <div key={t.id} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 0",borderBottom:"1px solid #F0E8E0"}}>
-                  <button onClick={()=>togDTodo(t.id)} style={{border:"none",background:"transparent",fontSize:14,cursor:"pointer",padding:0}}>{t.d?"☑":"☐"}</button>
-                  <input value={t.t} onChange={e=>{const v=e.target.value;setDTodos(prev=>prev.map(x=>x.id===t.id?{...x,t:v}:x));}} style={{flex:1,minWidth:0,fontSize:12,border:"none",background:"transparent",textDecoration:t.d?"line-through":"none",color:t.d?"#9B8E82":"#2C2420",fontFamily:"inherit",outline:"none",padding:0}}/>
-                  <button onClick={()=>delDTodo(t.id)} style={{border:"none",background:"transparent",color:"#C4B8AB",fontSize:14,cursor:"pointer",opacity:.6,padding:"0 4px"}}>×</button>
+                <div key={t.id} style={{display:"flex",alignItems:"center",gap:6,padding:"6px 0",borderBottom:"1px solid #F0E8E0"}}>
+                  <button onClick={()=>togDTodo(t.id)} style={{border:"none",background:"transparent",fontSize:16,cursor:"pointer",padding:0,flexShrink:0}}>{t.d?"☑":"☐"}</button>
+                  <input value={t.t} onChange={e=>{const v=e.target.value;setDTodos(prev=>prev.map(x=>x.id===t.id?{...x,t:v}:x));}} style={{flex:1,minWidth:0,fontSize:13,border:"none",background:"transparent",textDecoration:t.d?"line-through":"none",color:t.d?"#9B8E82":"#2C2420",fontFamily:"inherit",outline:"none",padding:0}}/>
+                  <button onClick={()=>{if(confirm("この1行を削除しますか？"))delDTodo(t.id);}} aria-label="この行を削除" style={{flexShrink:0,border:"1px solid #B85C3844",background:"#FFF5F2",color:"#B85C38",fontSize:14,cursor:"pointer",padding:"2px 8px",borderRadius:6,fontWeight:600,minWidth:28,minHeight:24,lineHeight:1}}>×</button>
                 </div>))}
             </div>
 
