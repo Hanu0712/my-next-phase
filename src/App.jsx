@@ -345,10 +345,11 @@ export default function App(){
           <div style={{marginBottom:24}}>
             <div style={{fontFamily:"'Shippori Mincho B1',serif",fontSize:13,color:"#6B5E54",borderBottom:"1px solid #EDE4D8",paddingBottom:6,marginBottom:10}}>📅 日々の記録</div>
             {Object.keys(ent).filter(k=>{const e=ent[k];return e&&(e.diary||e.note||e.weather||(e.todos&&e.todos.length)||(e.media&&e.media.length));}).sort().reverse().map(ds=>{const e=ent[ds];return(
-              <div key={ds} onClick={()=>openDay(ds)} style={{background:"white",borderRadius:9,padding:"12px 14px",border:"1px solid #EDE4D8",marginBottom:8,cursor:"pointer"}}>
+              <div key={ds} onClick={()=>openDay(ds)} style={{background:"white",borderRadius:9,padding:"12px 14px",border:"1px solid #EDE4D8",marginBottom:8,cursor:"pointer",position:"relative"}}>
                 <div style={{display:"flex",alignItems:"baseline",gap:8,marginBottom:6}}>
                   <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:14,color:"#C9A96E",letterSpacing:1}}>{ds.replace(/-/g,".")}</span>
                   {e.weather&&<span style={{fontSize:14}}>{e.weather}</span>}
+                  <button onClick={ev=>{ev.stopPropagation();if(confirm(`${ds.replace(/-/g,".")} の記録を削除しますか？`)){const u={...ent};delete u[ds];sv("np3-ent",u,setEnt);}}} style={{marginLeft:"auto",border:"none",background:"transparent",color:"#B85C38",fontSize:16,cursor:"pointer",padding:"0 4px",opacity:.6}}>×</button>
                 </div>
                 {e.todos&&e.todos.length>0&&(
                   <div style={{marginBottom:6}}>
@@ -367,7 +368,10 @@ export default function App(){
             <div style={{fontFamily:"'Shippori Mincho B1',serif",fontSize:13,color:"#6B5E54",borderBottom:"1px solid #EDE4D8",paddingBottom:6,marginBottom:10}}>✏️ 私の理想</div>
             {idealPages.length===0?<div style={{textAlign:"center",color:"#C4B8AB",fontSize:12,padding:"16px 0"}}>まだ記録がありません</div>:idealPages.map((p,i)=>(
               <div key={p.id} onClick={()=>{setTab("todo");setEditIP(i);}} style={{background:"white",borderRadius:9,padding:"12px 14px",border:"1px solid #EDE4D8",marginBottom:8,cursor:"pointer"}}>
-                <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:11,color:"#C9A96E",letterSpacing:1,marginBottom:6}}>{p.date}</div>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:6}}>
+                  <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:11,color:"#C9A96E",letterSpacing:1}}>{p.date}</span>
+                  <button onClick={ev=>{ev.stopPropagation();if(confirm("このページを削除しますか？")){const u=idealPages.filter(x=>x.id!==p.id);setIdealPages(u);try{localStorage.setItem("np3-ipages",JSON.stringify(u));}catch{}}}} style={{marginLeft:"auto",border:"none",background:"transparent",color:"#B85C38",fontSize:16,cursor:"pointer",padding:"0 4px",opacity:.6}}>×</button>
+                </div>
                 <div style={{fontSize:12,color:p.text?"#2C2420":"#C4B8AB",lineHeight:1.8,whiteSpace:"pre-wrap",wordBreak:"break-word"}}>{p.text||"（未記入）"}</div>
                 {p.media&&p.media.length>0&&<div style={{fontSize:10,color:"#C9A96E",marginTop:4}}>📷 {p.media.length}枚</div>}
               </div>
@@ -379,7 +383,10 @@ export default function App(){
             <div style={{fontFamily:"'Shippori Mincho B1',serif",fontSize:13,color:"#6B5E54",borderBottom:"1px solid #EDE4D8",paddingBottom:6,marginBottom:10}}>📝 自由ノート</div>
             {freePages.length===0?<div style={{textAlign:"center",color:"#C4B8AB",fontSize:12,padding:"16px 0"}}>まだ記録がありません</div>:freePages.map((p,i)=>(
               <div key={p.id} onClick={()=>{setTab("free");setEditFP(i);}} style={{background:"white",borderRadius:9,padding:"12px 14px",border:"1px solid #EDE4D8",marginBottom:8,cursor:"pointer"}}>
-                <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:11,color:"#C9A96E",letterSpacing:1,marginBottom:6}}>{p.date}</div>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:6}}>
+                  <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:11,color:"#C9A96E",letterSpacing:1}}>{p.date}</span>
+                  <button onClick={ev=>{ev.stopPropagation();if(confirm("このページを削除しますか？")){const u=freePages.filter(x=>x.id!==p.id);setFreePages(u);try{localStorage.setItem("np3-fpages",JSON.stringify(u));}catch{}}}} style={{marginLeft:"auto",border:"none",background:"transparent",color:"#B85C38",fontSize:16,cursor:"pointer",padding:"0 4px",opacity:.6}}>×</button>
+                </div>
                 <div style={{fontSize:12,color:p.text?"#2C2420":"#C4B8AB",lineHeight:1.8,whiteSpace:"pre-wrap",wordBreak:"break-word"}}>{p.text||"（未記入）"}</div>
               </div>
             ))}
@@ -490,9 +497,12 @@ export default function App(){
               <input value={slogan} onChange={e=>{setSlogan(e.target.value);svs(e.target.value);}} placeholder="あなたのスローガンをここに ─ 例：会社を辞めてやるのw" style={{width:"100%",textAlign:"center",border:"none",borderBottom:"2px solid #C9A96E44",background:"transparent",padding:"8px 4px",fontSize:13,fontFamily:"'Shippori Mincho B1',serif",color:"#2C2420",letterSpacing:1}}/>
             </div>
 
-            <div style={{display:"flex",gap:6,padding:"4px 16px 16px",justifyContent:"flex-end"}}>
-              <button onClick={()=>setSel(null)} style={{padding:"8px 14px",border:"1px solid #EDE4D8",background:"white",borderRadius:8,fontSize:12,color:"#9B8E82",cursor:"pointer",fontFamily:"inherit"}}>やめる</button>
-              <button onClick={saveDay} style={{padding:"8px 18px",border:"none",background:"#2C2420",borderRadius:8,fontSize:12,color:"#F7F2EB",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>保存する ✍️</button>
+            <div style={{display:"flex",gap:6,padding:"4px 16px 16px",justifyContent:"space-between",alignItems:"center"}}>
+              <button onClick={()=>{if(!sel)return;if(confirm("この日の記録（TODO・心の声・自由メモ・写真など）を全て削除しますか？")){const u={...ent};delete u[sel];sv("np3-ent",u,setEnt);setSel(null);}}} style={{padding:"8px 12px",border:"1px solid #B85C3844",background:"white",borderRadius:8,fontSize:11,color:"#B85C38",cursor:"pointer",fontFamily:"inherit"}}>🗑 この日を削除</button>
+              <div style={{display:"flex",gap:6}}>
+                <button onClick={()=>setSel(null)} style={{padding:"8px 14px",border:"1px solid #EDE4D8",background:"white",borderRadius:8,fontSize:12,color:"#9B8E82",cursor:"pointer",fontFamily:"inherit"}}>やめる</button>
+                <button onClick={saveDay} style={{padding:"8px 18px",border:"none",background:"#2C2420",borderRadius:8,fontSize:12,color:"#F7F2EB",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>保存する ✍️</button>
+              </div>
             </div>
           </div>
         </div>
