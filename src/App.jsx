@@ -151,7 +151,14 @@ export default function App(){
   const svs=useCallback((v)=>{setSlogan(v);try{localStorage.setItem("np3-slogan",v);}catch{}},[]);
 
   const openDay=ds=>{setSel(ds);const e=ent[ds]||{};setDTodos(e.todos||[]);setDDiary(e.diary||"");setDNote(e.note||"");setDWeather(e.weather||"");setDMedia(e.media||[]);setDNewTodo("");setDSesMedia([]);};
-  const saveDay=()=>{if(!sel)return;sv("np3-ent",{...ent,[sel]:{todos:dTodos,diary:dDiary,note:dNote,weather:dWeather,media:dMedia}},setEnt);setSel(null);};
+  const saveDay=()=>{setSel(null);};
+
+  // 文字を打つたびに即時自動保存（ローカル＆クラウド）
+  useEffect(()=>{
+    if(!sel)return;
+    const day={todos:dTodos,diary:dDiary,note:dNote,weather:dWeather,media:dMedia};
+    setEnt(prev=>{const e={...prev,[sel]:day};try{localStorage.setItem("np3-ent",JSON.stringify(e));}catch{}return e;});
+  },[sel,dTodos,dDiary,dNote,dWeather,dMedia]);
   const addDTodo=()=>{if(!dNewTodo.trim())return;setDTodos([...dTodos,{id:Date.now(),t:dNewTodo.trim(),d:false}]);setDNewTodo("");};
   const togDTodo=id=>setDTodos(dTodos.map(t=>t.id===id?{...t,d:!t.d}:t));
   const delDTodo=id=>setDTodos(dTodos.filter(t=>t.id!==id));
@@ -599,9 +606,9 @@ export default function App(){
 
             <div style={{display:"flex",gap:6,padding:"4px 16px 16px",justifyContent:"space-between",alignItems:"center"}}>
               <button onClick={()=>{if(!sel)return;if(confirm("この日の記録（TODO・心の声・自由メモ・写真など）を全て削除しますか？")){const u={...ent};delete u[sel];sv("np3-ent",u,setEnt);setSel(null);}}} style={{padding:"8px 12px",border:"1px solid #B85C3844",background:"white",borderRadius:8,fontSize:11,color:"#B85C38",cursor:"pointer",fontFamily:"inherit"}}>🗑 この日を削除</button>
-              <div style={{display:"flex",gap:6}}>
-                <button onClick={()=>setSel(null)} style={{padding:"8px 14px",border:"1px solid #EDE4D8",background:"white",borderRadius:8,fontSize:12,color:"#9B8E82",cursor:"pointer",fontFamily:"inherit"}}>やめる</button>
-                <button onClick={saveDay} style={{padding:"8px 18px",border:"none",background:"#2C2420",borderRadius:8,fontSize:12,color:"#F7F2EB",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>保存する ✍️</button>
+              <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                <span style={{fontSize:10,color:"#9B8E82"}}>✅ 自動保存中</span>
+                <button onClick={saveDay} style={{padding:"8px 18px",border:"none",background:"#2C2420",borderRadius:8,fontSize:12,color:"#F7F2EB",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>閉じる</button>
               </div>
             </div>
           </div>
