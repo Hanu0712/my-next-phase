@@ -606,116 +606,12 @@ export default function App(){
 
             <div style={{display:"flex",gap:6,padding:"4px 16px 16px",justifyContent:"space-between",alignItems:"center"}}>
               <button onClick={()=>{if(!sel)return;if(confirm("この日の記録（TODO・心の声・自由メモ・写真など）を全て削除しますか？")){const u={...ent};delete u[sel];sv("np3-ent",u,setEnt);setSel(null);}}} style={{padding:"8px 12px",border:"1px solid #B85C3844",background:"white",borderRadius:8,fontSize:11,color:"#B85C38",cursor:"pointer",fontFamily:"inherit"}}>🗑 この日を削除</button>
-              <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                <span style={{fontSize:10,color:"#9B8E82"}}>✅ 自動保存中</span>
-                <button onClick={saveDay} style={{padding:"8px 18px",border:"none",background:"#2C2420",borderRadius:8,fontSize:12,color:"#F7F2EB",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>閉じる</button>
-              </div>
+              <button onClick={saveDay} style={{padding:"8px 18px",border:"none",background:"#2C2420",borderRadius:8,fontSize:12,color:"#F7F2EB",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>閉じる</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* クラウド同期 */}
-      <div style={{padding:"20px 16px",borderTop:"1px solid #EDE4D8",background:"#F7F2EB"}}>
-        <div style={{maxWidth:520,margin:"0 auto"}}>
-          <div style={{fontFamily:"'Shippori Mincho B1',serif",fontSize:13,color:"#2C2420",textAlign:"center",marginBottom:8,letterSpacing:1}}>☁️ クラウド同期</div>
-          <div style={{fontSize:10,color:"#9B8E82",textAlign:"center",marginBottom:12,lineHeight:1.8}}>下のコードを別の端末にも入力すると、自動で同じ内容になります。<br/>書いた内容は1.5秒後に自動でクラウドへ保存されます。</div>
-          <div style={{fontSize:10,color:"#6B5E54",marginBottom:4,letterSpacing:1}}>あなたの同期コード</div>
-          <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:8}}>
-            <input value={syncInput} onChange={e=>setSyncInput(e.target.value.trim())} placeholder="同期コード" style={{flex:1,minWidth:0,padding:"10px 10px",border:"1px solid #C9A96E",background:"white",borderRadius:8,fontSize:13,fontFamily:"monospace",color:"#2C2420",letterSpacing:1}}/>
-            <button onClick={()=>{if(!syncInput)return;try{navigator.clipboard.writeText(syncInput);setSyncMsg("📋 コピーしました");setTimeout(()=>setSyncMsg(""),1500);}catch{setSyncMsg("コピーできませんでした");}}} style={{padding:"10px 12px",border:"1px solid #C9A96E",background:"white",color:"#C9A96E",borderRadius:8,fontSize:12,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap"}}>コピー</button>
-          </div>
-          <button onClick={async()=>{
-            const newCode=(syncInput||"").trim();
-            if(!newCode){alert("同期コードを入力してください");return;}
-            if(newCode===syncCode){
-              // Same code: pull latest and merge with local
-              setSyncBusy(true);
-              const res=await pullFromCloud(newCode);
-              setSyncBusy(false);
-              if(res.ok&&res.data){
-                const localData=readLocalData();
-                const merged=mergeData(localData,res.data);
-                writeLocalData(merged);
-                if(JSON.stringify(merged)!==JSON.stringify(res.data)){
-                  await pushToCloud(newCode,merged);
-                }
-                alert("クラウドとローカルを統合しました。画面を更新します。");
-                location.reload();
-              }
-              else if(res.ok&&res.empty){alert("そのコードにはまだ保存データがありません。");}
-              else{alert("同期エラー: "+(res.reason||"不明"));}
-              return;
-            }
-            if(!confirm("このコードに切り替えます。今の端末の内容とクラウドのデータを統合します。続行しますか？"))return;
-            setSyncBusy(true);
-            const res=await pullFromCloud(newCode);
-            if(res.ok&&res.data){
-              localStorage.setItem("np3-sync-code",newCode);
-              const localData=readLocalData();
-              const merged=mergeData(localData,res.data);
-              writeLocalData(merged);
-              if(JSON.stringify(merged)!==JSON.stringify(res.data)){
-                await pushToCloud(newCode,merged);
-              }
-              alert("統合しました。画面を更新します。");
-              location.reload();
-            }else if(res.ok&&res.empty){
-              if(confirm("そのコードにはまだ保存データがありません。\nこのコードを使い始めますか？（今の端末の内容がこのコードでアップロードされます）")){
-                localStorage.setItem("np3-sync-code",newCode);
-                const localData=readLocalData();
-                await pushToCloud(newCode,localData);
-                setSyncCode(newCode);
-                setSyncMsg("☁️ このコードで保存を開始しました");
-                setTimeout(()=>setSyncMsg(""),3000);
-              }
-              setSyncBusy(false);
-            }else{alert("同期エラー: "+(res.reason||"不明"));setSyncBusy(false);}
-          }} style={{width:"100%",padding:"10px",border:"none",background:"#2C2420",color:"#F7F2EB",borderRadius:8,fontSize:12,cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>🔄 このコードで同期する／別端末のデータを取り込む</button>
-          {(syncBusy||syncMsg)&&<div style={{textAlign:"center",fontSize:11,color:"#6B5E54",marginTop:10,minHeight:14}}>{syncMsg||"同期中..."}</div>}
-        </div>
-      </div>
-
-      {/* バックアップ */}
-      <div style={{padding:"20px 16px",borderTop:"1px solid #EDE4D8",background:"#FDFAF6"}}>
-        <div style={{maxWidth:520,margin:"0 auto"}}>
-          <div style={{fontFamily:"'Shippori Mincho B1',serif",fontSize:12,color:"#6B5E54",textAlign:"center",marginBottom:8,letterSpacing:1}}>バックアップ</div>
-          <div style={{fontSize:10,color:"#9B8E82",textAlign:"center",marginBottom:12,lineHeight:1.8}}>データは端末ごとに保存されます。<br/>定期的に保存し、別端末で復元できます。</div>
-          <div style={{display:"flex",gap:8}}>
-            <button onClick={()=>{
-              const data={};
-              ["np3-ent","np3-todos","np3-slogan","np3-fpages","np3-ipages","np3-paid"].forEach(k=>{const v=localStorage.getItem(k);if(v!==null)data[k]=v;});
-              const blob=new Blob([JSON.stringify({app:"my-next-phase",version:1,exportedAt:new Date().toISOString(),data},null,2)],{type:"application/json"});
-              const url=URL.createObjectURL(blob);
-              const a=document.createElement("a");
-              const d=new Date();
-              a.href=url;
-              a.download=`my-next-phase-backup-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}-${String(d.getHours()).padStart(2,"0")}${String(d.getMinutes()).padStart(2,"0")}.json`;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-              setTimeout(()=>URL.revokeObjectURL(url),1000);
-            }} style={{flex:1,padding:"10px",border:"1px solid #C9A96E",background:"white",color:"#C9A96E",borderRadius:8,fontSize:12,fontFamily:"inherit",cursor:"pointer"}}>📥 バックアップを保存</button>
-            <label style={{flex:1,padding:"10px",border:"1px solid #C9A96E",background:"white",color:"#C9A96E",borderRadius:8,fontSize:12,fontFamily:"inherit",cursor:"pointer",textAlign:"center"}}>
-              📤 バックアップから復元
-              <input type="file" accept="application/json,.json" hidden onChange={async e=>{
-                const f=e.target.files?.[0];
-                if(!f){return;}
-                if(!confirm("現在のデータは上書きされます。続行しますか？")){e.target.value="";return;}
-                try{
-                  const text=await f.text();
-                  const obj=JSON.parse(text);
-                  const data=obj.data||obj;
-                  Object.keys(data).forEach(k=>{if(k.startsWith("np3-"))localStorage.setItem(k,data[k]);});
-                  alert("復元しました。画面を更新します。");
-                  location.reload();
-                }catch(err){alert("ファイルの読み込みに失敗しました: "+err.message);}
-                e.target.value="";
-              }}/>
-            </label>
-          </div>
-        </div>
-      </div>
 
       <footer style={{textAlign:"center",padding:"24px 16px 30px",borderTop:"1px solid #EDE4D8"}}>
         <div style={{fontFamily:"'Shippori Mincho B1',serif",fontSize:13,color:"#6B5E54",lineHeight:2,letterSpacing:1}}>あの日の決断を、誇りに思え。</div>
