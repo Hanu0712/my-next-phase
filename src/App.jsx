@@ -154,6 +154,23 @@ export default function App(){
   const hasEntry=ds=>{const e=ent[ds];return e&&(e.diary||e.note||e.weather||(e.todos&&e.todos.length)||(e.media&&e.media.length));};
 
   const nowStamp=()=>{const d=new Date();return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;};
+  // Compress an image file to keep it under localStorage/JSONB-friendly size.
+  // Loads → draws at max 1600px → JPEG quality 0.75. Returns dataURL string or null on failure.
+  const compressImage=useCallback(async(file,maxSize=1600,quality=0.75)=>{
+    try{
+      const url=URL.createObjectURL(file);
+      const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url;});
+      let w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;
+      if(w>maxSize||h>maxSize){if(w>=h){h=Math.round(h*maxSize/w);w=maxSize;}else{w=Math.round(w*maxSize/h);h=maxSize;}}
+      const c=document.createElement("canvas");c.width=w;c.height=h;
+      const ctx=c.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);
+      let q=quality,out=c.toDataURL("image/jpeg",q);
+      // If still too large, drop quality further
+      while(out.length>800000&&q>0.4){q-=0.1;out=c.toDataURL("image/jpeg",q);}
+      URL.revokeObjectURL(url);
+      return out;
+    }catch{return null;}
+  },[]);
 
   if(!ok)return <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",background:"#F7F2EB"}}><p style={{fontFamily:"serif",color:"#9B8E82"}}>手帳を開いています…</p></div>;
 
@@ -294,8 +311,8 @@ export default function App(){
                     for(const f of files){
                       const isV=f.type.startsWith("video");const url=URL.createObjectURL(f);const ts=nowStamp();
                       if(isV){setSesFP(p=>[...p,{id:Date.now()+Math.random(),type:"video",url,date:ts}]);}
-                      else{const reader=new FileReader();const b=await new Promise(r=>{reader.onload=()=>r(reader.result);reader.readAsDataURL(f);});
-                        if(b.length<3500000){const u=[...freePages];u[editFP]={...u[editFP],media:[...(u[editFP].media||[]),{id:Date.now()+Math.random(),type:"image",data:b,date:ts}]};setFreePages(u);try{localStorage.setItem("np3-fpages",JSON.stringify(u));}catch{}}
+                      else{const b=await compressImage(f);
+                        if(b&&b.length<3500000){const u=[...freePages];u[editFP]={...u[editFP],media:[...(u[editFP].media||[]),{id:Date.now()+Math.random(),type:"image",data:b,date:ts}]};setFreePages(u);try{localStorage.setItem("np3-fpages",JSON.stringify(u));}catch{}}
                         else{setSesFP(p=>[...p,{id:Date.now()+Math.random(),type:"image",url,date:ts}]);}}
                     }e.target.value="";}}/></label>
                 </div>
@@ -356,8 +373,8 @@ export default function App(){
                     for(const f of files){
                       const isV=f.type.startsWith("video");const url=URL.createObjectURL(f);const ts=nowStamp();
                       if(isV){setSesIP(p=>[...p,{id:Date.now()+Math.random(),type:"video",url,date:ts}]);}
-                      else{const reader=new FileReader();const b=await new Promise(r=>{reader.onload=()=>r(reader.result);reader.readAsDataURL(f);});
-                        if(b.length<3500000){const u=[...idealPages];u[editIP]={...u[editIP],media:[...(u[editIP].media||[]),{id:Date.now()+Math.random(),type:"image",data:b,date:ts}]};setIdealPages(u);try{localStorage.setItem("np3-ipages",JSON.stringify(u));}catch{}}
+                      else{const b=await compressImage(f);
+                        if(b&&b.length<3500000){const u=[...idealPages];u[editIP]={...u[editIP],media:[...(u[editIP].media||[]),{id:Date.now()+Math.random(),type:"image",data:b,date:ts}]};setIdealPages(u);try{localStorage.setItem("np3-ipages",JSON.stringify(u));}catch{}}
                         else{setSesIP(p=>[...p,{id:Date.now()+Math.random(),type:"image",url,date:ts}]);}}
                     }e.target.value="";}}/></label>
                 </div>
@@ -530,8 +547,8 @@ export default function App(){
                   for(const f of files){
                     const isV=f.type.startsWith("video");const url=URL.createObjectURL(f);const ts=nowStamp();
                     if(isV){setDSesMedia(p=>[...p,{id:Date.now()+Math.random(),type:"video",url,date:ts}]);}
-                    else{const reader=new FileReader();const b=await new Promise(r=>{reader.onload=()=>r(reader.result);reader.readAsDataURL(f);});
-                      if(b.length<3500000){setDMedia(p=>[...p,{id:Date.now()+Math.random(),type:"image",data:b,date:ts}]);}
+                    else{const b=await compressImage(f);
+                      if(b&&b.length<3500000){setDMedia(p=>[...p,{id:Date.now()+Math.random(),type:"image",data:b,date:ts}]);}
                       else{setDSesMedia(p=>[...p,{id:Date.now()+Math.random(),type:"image",url,date:ts}]);}}
                   }e.target.value="";}}/></label>
               </div>

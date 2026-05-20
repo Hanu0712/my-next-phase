@@ -40,38 +40,72 @@ export function mergeData(local, cloud) {
   const merged = {};
   const safeParse = (s, fallback) => { try { return s == null ? fallback : JSON.parse(s); } catch { return fallback; } };
 
-  // ent
+  // Union two media arrays by id (preserve photos from both sides)
+  const unionMedia = (a, b) => {
+    const m = new Map();
+    for (const x of (a || [])) if (x && x.id != null) m.set(String(x.id), x);
+    for (const x of (b || [])) if (x && x.id != null) m.set(String(x.id), x);
+    return [...m.values()];
+  };
+  // Union todos by id, prefer item with more text or done state
+  const unionTodos = (a, b) => {
+    const m = new Map();
+    const put = (x) => {
+      if (!x || x.id == null) return;
+      const k = String(x.id);
+      const prev = m.get(k);
+      if (!prev) { m.set(k, x); return; }
+      const lt = (x.t || "").length, pt = (prev.t || "").length;
+      m.set(k, lt >= pt ? { ...x, d: x.d || prev.d } : { ...prev, d: prev.d || x.d });
+    };
+    for (const x of (a || [])) put(x);
+    for (const x of (b || [])) put(x);
+    return [...m.values()];
+  };
+
+  // ent: merge per-date, picking winner by content score BUT unioning media + todos
   const le = safeParse(local["np3-ent"], {});
   const ce = safeParse(cloud["np3-ent"], {});
-  const ent = { ...ce };
-  for (const k of Object.keys(le)) {
+  const ent = {};
+  const dates = new Set([...Object.keys(le), ...Object.keys(ce)]);
+  const score = e => (e.diary || "").length + (e.note || "").length + ((e.todos || []).length * 30) + ((e.media || []).length * 50) + (e.weather ? 5 : 0);
+  for (const k of dates) {
     const lv = le[k], cv = ce[k];
+    if (!lv) { ent[k] = cv; continue; }
     if (!cv) { ent[k] = lv; continue; }
-    // Score by sum of text length + todos count + media count
-    const score = e => (e.diary || "").length + (e.note || "").length + ((e.todos || []).length * 30) + ((e.media || []).length * 50) + (e.weather ? 5 : 0);
-    ent[k] = score(lv) >= score(cv) ? lv : cv;
+    const winner = score(lv) >= score(cv) ? lv : cv;
+    ent[k] = {
+      ...winner,
+      media: unionMedia(lv.media, cv.media),
+      todos: unionTodos(lv.todos, cv.todos),
+    };
   }
   merged["np3-ent"] = JSON.stringify(ent);
 
-  // arrays by id
+  // arrays of pages by id (text wins by length; media unioned)
   const mergeArr = (key) => {
     const la = safeParse(local[key], []);
     const ca = safeParse(cloud[key], []);
     const map = new Map();
-    for (const it of ca) if (it && it.id != null) map.set(it.id, it);
-    for (const it of la) if (it && it.id != null) {
-      const existing = map.get(it.id);
-      if (!existing) { map.set(it.id, it); continue; }
-      // Choose the one with more content
-      const lt = (it.text || "").length + (it.t || "").length;
-      const et = (existing.text || "").length + (existing.t || "").length;
-      map.set(it.id, lt >= et ? it : existing);
-    }
+    const put = (x) => {
+      if (!x || x.id == null) return;
+      const k = String(x.id);
+      const prev = map.get(k);
+      if (!prev) { map.set(k, x); return; }
+      const lt = (x.text || "").length;
+      const pt = (prev.text || "").length;
+      const winner = lt >= pt ? x : prev;
+      map.set(k, { ...winner, media: unionMedia(x.media, prev.media) });
+    };
+    for (const it of ca) put(it);
+    for (const it of la) put(it);
     merged[key] = JSON.stringify([...map.values()]);
   };
   mergeArr("np3-fpages");
   mergeArr("np3-ipages");
-  mergeArr("np3-todos");
+
+  // todos array (top-level, separate from per-day todos)
+  merged["np3-todos"] = JSON.stringify(unionTodos(safeParse(local["np3-todos"], []), safeParse(cloud["np3-todos"], [])));
 
   // slogan: prefer non-empty local
   const ls = local["np3-slogan"];
