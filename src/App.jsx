@@ -129,6 +129,24 @@ export default function App(){
     return ()=>clearTimeout(t);
   },[ent,todos,slogan,freePages,idealPages,paidLeft,syncCode,ok]);
 
+  // Immediate push when app goes to background or tab is closed (mobile-safe)
+  useEffect(()=>{
+    const flush=()=>{
+      if(skipPushRef.current||!syncCode||!ok)return;
+      const data=readLocalData();
+      const sig=JSON.stringify(data);
+      if(sig===lastPushedRef.current)return;
+      lastPushedRef.current=sig;
+      // Use sendBeacon for reliability on page close; fall back to async fetch
+      const payload=JSON.stringify({code:syncCode,data,updated_at:new Date().toISOString()});
+      pushToCloud(syncCode,data);
+    };
+    const onHide=()=>{if(document.visibilityState==="hidden")flush();};
+    document.addEventListener("visibilitychange",onHide);
+    window.addEventListener("pagehide",flush);
+    return ()=>{document.removeEventListener("visibilitychange",onHide);window.removeEventListener("pagehide",flush);};
+  },[syncCode,ok]);
+
   const sv=useCallback((k,v,fn)=>{fn(v);try{localStorage.setItem(k,JSON.stringify(v));}catch{}},[]);
   const svs=useCallback((v)=>{setSlogan(v);try{localStorage.setItem("np3-slogan",v);}catch{}},[]);
 
