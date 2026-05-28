@@ -100,23 +100,21 @@ export default function App(){
       const merged=mergeData(localData,res.data);
       const mergedSig=JSON.stringify(merged);
       const cloudSig=JSON.stringify(res.data);
-      await writeDataWithPhotos(merged); // 写真をIndexedDBへ、それ以外をlocalStorageへ
+      await writeDataWithPhotos(merged); // 写真をIndexedDBへ保存、テキストのみlocalStorage
       loadStateFromLocal();
       if(mergedSig!==cloudSig){
-        const fullMerged=await readLocalDataFull(); // IndexedDB含む全データ
-        const push=await pushToCloud(code,fullMerged);
-        if(push.ok)setSyncMsg("☁️ クラウドと統合しました");
+        // ローカルに新しいデータがある→テキストのみクラウドへ送る
+        const push=await pushToCloud(code,merged);
+        if(push.ok){setSyncMsg("☁️ クラウドと統合しました");lastPushedRef.current=mergedSig;}
         else setSyncMsg("⚠️ アップロード失敗: "+push.reason);
-        lastPushedRef.current=mergedSig;
       }else{
         setSyncMsg("☁️ クラウドから同期しました");
         lastPushedRef.current=cloudSig;
       }
     }else if(res.ok&&res.empty){
-      // First time using this code: push current local data up (写真含む)
+      // 初回：ローカルデータをクラウドへ（テキストのみ）
       if(Object.keys(localData).length>0){
-        const fullData=await readLocalDataFull();
-        const push=await pushToCloud(code,fullData);
+        const push=await pushToCloud(code,localData);
         if(push.ok){setSyncMsg("☁️ 初回アップロード完了");lastPushedRef.current=JSON.stringify(localData);}
       }
     }else{
@@ -128,18 +126,18 @@ export default function App(){
     setOk(true);
   })();},[loadStateFromLocal]);
 
-  // Auto-push to cloud (debounced) on data changes — 写真含む全データを送信
+  // Auto-push to cloud (debounced) on data changes
   useEffect(()=>{
     if(skipPushRef.current||!syncCode||!ok)return;
     const t=setTimeout(async()=>{
-      const sig=JSON.stringify(readLocalData());
+      const data=readLocalData(); // テキストデータのみ（写真なし）
+      const sig=JSON.stringify(data);
       if(sig===lastPushedRef.current)return;
-      lastPushedRef.current=sig;
-      const data=await readLocalDataFull(); // IndexedDB写真を含む
+      // ※ refはpush成功後にのみ更新する（失敗しても再試行できるように）
       setSyncBusy(true);
       const res=await pushToCloud(syncCode,data);
       setSyncBusy(false);
-      if(res.ok){setSyncMsg("☁️");setTimeout(()=>setSyncMsg(""),1200);}
+      if(res.ok){lastPushedRef.current=sig;setSyncMsg("☁️");setTimeout(()=>setSyncMsg(""),1200);}
       else{setSyncMsg("⚠️");setTimeout(()=>setSyncMsg(""),3000);}
     },1500);
     return ()=>clearTimeout(t);
@@ -147,13 +145,13 @@ export default function App(){
 
   // Immediate push when app goes to background or tab is closed (mobile-safe)
   useEffect(()=>{
-    const flush=async()=>{
+    const flush=()=>{
       if(skipPushRef.current||!syncCode||!ok)return;
-      const sig=JSON.stringify(readLocalData());
+      const data=readLocalData();
+      const sig=JSON.stringify(data);
       if(sig===lastPushedRef.current)return;
-      lastPushedRef.current=sig;
-      const data=await readLocalDataFull();
-      pushToCloud(syncCode,data);
+      lastPushedRef.current=sig; // ここは先に立てて二重送信を防ぐ
+      pushToCloud(syncCode,data); // 同期的に呼ぶ（非同期awaited不要）
     };
     const onHide=()=>{if(document.visibilityState==="hidden")flush();};
     document.addEventListener("visibilitychange",onHide);
