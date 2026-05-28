@@ -725,6 +725,32 @@ export default function App(){
         <div style={{fontFamily:"'Shippori Mincho B1',serif",fontSize:13,color:"#6B5E54",lineHeight:2,letterSpacing:1}}>あの日の決断を、誇りに思え。</div>
         <div style={{fontFamily:"'Shippori Mincho B1',serif",fontSize:12,color:"#9B8E82",marginTop:4}}>この手帳には、「輝かしい未来」「希望」しかない。</div>
         <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:10,color:"#C4B8AB",letterSpacing:3,marginTop:8}}>2026.05.14 — 2026.12.16 ♦ {total} DAYS TO FREEDOM</div>
+
+        {/* 強制同期ボタン */}
+        <div style={{marginTop:20}}>
+          <button onClick={async()=>{
+            const data=readLocalData();
+            const keys=Object.keys(data);
+            if(!keys.length){alert("この端末にはローカルデータがありません。");return;}
+            let entCount=0;
+            try{entCount=Object.keys(JSON.parse(data["np3-ent"]||"{}")).length;}catch{}
+            const confirmed=confirm(`この端末のデータをクラウドへ強制送信します。\n\n日記エントリー数: ${entCount}件\n\nこのまま送信しますか？`);
+            if(!confirmed)return;
+            const code=localStorage.getItem("np3-sync-code");
+            if(!code){alert("同期コードがありません。");return;}
+            try{
+              const res=await pushToCloud(code,data);
+              if(res.ok){
+                lastPushedRef.current=JSON.stringify(data);
+                alert("✅ 送信完了！\n\nクラウドにデータを保存しました。");
+              }else{
+                alert("⚠️ 送信失敗: "+res.reason);
+              }
+            }catch(e){alert("エラー: "+String(e));}
+          }} style={{padding:"10px 20px",border:"1px solid #C9A96E",background:"white",color:"#9B8E82",borderRadius:8,fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>
+            この端末のデータを今すぐクラウドへ送信
+          </button>
+        </div>
       </footer>
     </div>
   );
