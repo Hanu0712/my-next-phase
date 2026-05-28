@@ -1,5 +1,53 @@
 import { createClient } from "@supabase/supabase-js";
 
+// ── IndexedDB: 写真専用ストレージ（容量無制限）──
+const IDB_NAME = "np3";
+const IDB_STORE = "photos";
+function openIDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = e => {
+      if (!e.target.result.objectStoreNames.contains(IDB_STORE))
+        e.target.result.createObjectStore(IDB_STORE);
+    };
+    req.onsuccess = e => res(e.target.result);
+    req.onerror = () => rej(req.error);
+  });
+}
+export async function idbPut(id, data) {
+  try {
+    const db = await openIDB();
+    await new Promise((res, rej) => {
+      const tx = db.transaction(IDB_STORE, "readwrite");
+      tx.objectStore(IDB_STORE).put(data, String(id));
+      tx.oncomplete = res; tx.onerror = () => rej(tx.error);
+    });
+    return true;
+  } catch { return false; }
+}
+export async function idbGet(id) {
+  try {
+    const db = await openIDB();
+    return await new Promise((res, rej) => {
+      const tx = db.transaction(IDB_STORE, "readonly");
+      const req = tx.objectStore(IDB_STORE).get(String(id));
+      req.onsuccess = () => res(req.result || null);
+      req.onerror = () => rej(req.error);
+    });
+  } catch { return null; }
+}
+export async function idbDel(id) {
+  try {
+    const db = await openIDB();
+    await new Promise((res, rej) => {
+      const tx = db.transaction(IDB_STORE, "readwrite");
+      tx.objectStore(IDB_STORE).delete(String(id));
+      tx.oncomplete = res; tx.onerror = () => rej(tx.error);
+    });
+    return true;
+  } catch { return false; }
+}
+
 const SUPABASE_URL = "https://vmmdwnysvkwufyvixxbs.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_GgsFQg22NYOgtVtgzKgsDw_RlT9B0b4";
 
@@ -7,7 +55,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: { persistSession: false },
 });
 
-const KEYS = ["np3-ent", "np3-todos", "np3-slogan", "np3-fpages", "np3-ipages", "np3-paid"];
+const KEYS = ["np3-ent", "np3-todos", "np3-slogan", "np3-fpages", "np3-ipages", "np3-paid", "np3-vboard"];
 
 export function makeSyncCode() {
   const r = (typeof crypto !== "undefined" && crypto.randomUUID)
@@ -30,6 +78,43 @@ export function writeLocalData(data) {
   KEYS.forEach(k => {
     if (data[k] != null) localStorage.setItem(k, data[k]);
   });
+}
+
+// クラウド送信用：IndexedDBから写真データを含めたフルデータを返す
+export async function readLocalDataFull() {
+  const data = readLocalData();
+  try {
+    const ent = JSON.parse(data["np3-ent"] || "{}");
+    let changed = false;
+    for (const date of Object.keys(ent)) {
+      for (const m of (ent[date].media || [])) {
+        if (m.type === "image" && !m.data) {
+          const d = await idbGet(String(m.id));
+          if (d) { m.data = d; changed = true; }
+        }
+      }
+    }
+    if (changed) data["np3-ent"] = JSON.stringify(ent);
+  } catch {}
+  return data;
+}
+
+// クラウドから受け取ったデータの写真をIndexedDBに保存し、localStorageには写真なしで書き込む
+export async function writeDataWithPhotos(data) {
+  try {
+    const ent = JSON.parse(data["np3-ent"] || "{}");
+    for (const date of Object.keys(ent)) {
+      const media = ent[date].media || [];
+      for (const m of media) {
+        if (m.type === "image" && m.data) {
+          await idbPut(String(m.id), m.data);
+          delete m.data; // localStorageには画像データを入れない
+        }
+      }
+    }
+    data["np3-ent"] = JSON.stringify(ent);
+  } catch {}
+  writeLocalData(data);
 }
 
 // Merge cloud and local data without losing entries.
@@ -103,6 +188,7 @@ export function mergeData(local, cloud) {
   };
   mergeArr("np3-fpages");
   mergeArr("np3-ipages");
+  mergeArr("np3-vboard");
 
   // todos array (top-level, separate from per-day todos)
   merged["np3-todos"] = JSON.stringify(unionTodos(safeParse(local["np3-todos"], []), safeParse(cloud["np3-todos"], [])));
