@@ -11,10 +11,10 @@ const PH = {
 const MS = {
   "2026-05-14": { label: "退職、決めた日", sub: "ここから全てが始まった", icon: "🔥", p: "W" },
   "2027-02-28": { label: "最終出勤日", sub: "さよなら、オフィス", icon: "🎊", p: "W" },
-  "2027-05-27": { label: "退職日", sub: "お疲れ様、わたし", icon: "✨", p: "P" },
-  "2027-05-28": { label: "私の次のフェーズ ★", sub: "新しい世界の、1日目", icon: "🌟", p: "N" },
+  "2027-05-23": { label: "退職日", sub: "お疲れ様、わたし", icon: "✨", p: "P" },
+  "2027-05-24": { label: "私の次のフェーズ ★", sub: "新しい世界の、1日目", icon: "🌟", p: "N" },
 };
-const SEA = {"2026-05-21":"小満","2026-06-05":"芒種","2026-06-10":"入梅","2026-06-21":"夏至／景晴BIRTHDAY 80歳","2026-07-02":"半夏生","2026-07-07":"七夕・小暑","2026-07-12":"MY♡BIRTHDAY","2026-07-19":"土用の丑","2026-07-23":"大暑","2026-08-07":"立秋","2026-08-13":"迎え火","2026-08-15":"お盆／景晴命日 10周忌","2026-08-16":"送り火","2026-08-23":"処暑","2026-09-07":"白露","2026-09-20":"秋のお彼岸入り","2026-09-21":"秋のお彼岸","2026-09-22":"秋分の日","2026-09-23":"秋のお彼岸","2026-09-24":"秋のお彼岸","2026-09-25":"秋のお彼岸","2026-09-26":"秋のお彼岸明け","2026-10-08":"寒露","2026-10-23":"霜降","2026-11-04":"和子BIRTHDAY 75歳","2026-11-07":"立冬","2026-11-22":"小雪","2026-12-07":"大雪","2027-05-28":"新しい始まり"};
+const SEA = {"2026-05-21":"小満","2026-06-05":"芒種","2026-06-10":"入梅","2026-06-21":"夏至／景晴BIRTHDAY 80歳","2026-07-02":"半夏生","2026-07-07":"七夕・小暑","2026-07-12":"MY♡BIRTHDAY","2026-07-19":"土用の丑","2026-07-23":"大暑","2026-08-07":"立秋","2026-08-13":"迎え火","2026-08-15":"お盆／景晴命日 10周忌","2026-08-16":"送り火","2026-08-23":"処暑","2026-09-07":"白露","2026-09-20":"秋のお彼岸入り","2026-09-21":"秋のお彼岸","2026-09-22":"秋分の日","2026-09-23":"秋のお彼岸","2026-09-24":"秋のお彼岸","2026-09-25":"秋のお彼岸","2026-09-26":"秋のお彼岸明け","2026-10-08":"寒露","2026-10-23":"霜降","2026-11-04":"和子BIRTHDAY 75歳","2026-11-07":"立冬","2026-11-22":"小雪","2026-12-07":"大雪","2027-05-24":"新しい始まり"};
 const HOL = new Set(["2026-07-20","2026-08-11","2026-09-21","2026-09-22","2026-09-23","2026-10-12","2026-11-03","2026-11-23"]);
 const RK = ["大安","赤口","先勝","友引","先負","仏滅"];
 const rk = d => RK[(d.getMonth()+d.getDate())%6];
@@ -22,7 +22,7 @@ const rk = d => RK[(d.getMonth()+d.getDate())%6];
 const DW=["日","月","火","水","木","金","土"];
 const ME=["","January","February","March","April","May","June","July","August","September","October","November","December"];
 const MJ=["","睦月","如月","弥生","卯月","皐月","水無月","文月","葉月","長月","神無月","霜月","師走"];
-const S=new Date(2026,4,14),LW=new Date(2027,1,28),RS=new Date(2027,4,27),NP=new Date(2027,4,28);
+const S=new Date(2026,4,14),LW=new Date(2027,1,28),RS=new Date(2027,4,23),NP=new Date(2027,4,24);
 const fm=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 const df=(a,b)=>Math.ceil((b-a)/864e5);
 // カレンダーの表示可能範囲（絶対月インデックス = 年*12 + (月-1)）：開始月〜次のフェーズの月
@@ -345,7 +345,7 @@ export default function App(){
             </div>
           </div>
           <div className="stats" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6,padding:"12px 0"}}>
-            {[{n:dlw,l:"最終出勤",d:"02.28",c:"#B85C38",bg:"#B85C38"},{n:"paid",l:"有休残り",d:"🌴",c:"#4A7C6F",bg:"#4A7C6F"},{n:drs,l:"退職日",d:"05.27",c:"#C9A96E",bg:"#C9A96E"},{n:dnp,l:"NEXT PHASE",d:"05.28",c:"#F7F2EB",bg:"#F7F2EB"}].map((s,i)=>(
+            {[{n:dlw,l:"最終出勤",d:"02.28",c:"#B85C38",bg:"#B85C38"},{n:"paid",l:"有休残り",d:"🌴",c:"#4A7C6F",bg:"#4A7C6F"},{n:drs,l:"退職日",d:"05.23",c:"#C9A96E",bg:"#C9A96E"},{n:dnp,l:"NEXT PHASE",d:"05.24",c:"#F7F2EB",bg:"#F7F2EB"}].map((s,i)=>(
               <div key={i} style={{background:"rgba(247,242,235,.95)",borderRadius:10,padding:"10px 4px",textAlign:"center",boxShadow:"0 2px 12px rgba(0,0,0,.15)"}}>
                 <div style={{fontSize:7,color:"#9B8E82",letterSpacing:1,marginBottom:2}}>{s.d}</div>
                 {s.n==="paid"?(
@@ -835,7 +835,7 @@ export default function App(){
       <footer style={{textAlign:"center",padding:"24px 16px 30px",borderTop:"1px solid #EDE4D8"}}>
         <div style={{fontFamily:"'Shippori Mincho B1',serif",fontSize:13,color:"#6B5E54",lineHeight:2,letterSpacing:1}}>あの日の決断を、誇りに思え。</div>
         <div style={{fontFamily:"'Shippori Mincho B1',serif",fontSize:12,color:"#9B8E82",marginTop:4}}>この手帳には、「輝かしい未来」「希望」しかない。</div>
-        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:10,color:"#C4B8AB",letterSpacing:3,marginTop:8}}>2026.05.14 — 2027.05.28 ♦ {total} DAYS TO FREEDOM</div>
+        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:10,color:"#C4B8AB",letterSpacing:3,marginTop:8}}>2026.05.14 — 2027.05.24 ♦ {total} DAYS TO FREEDOM</div>
 
         {/* 強制同期ボタン */}
         <div style={{marginTop:20,display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
