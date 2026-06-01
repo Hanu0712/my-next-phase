@@ -10,11 +10,11 @@ const PH = {
 };
 const MS = {
   "2026-05-14": { label: "退職、決めた日", sub: "ここから全てが始まった", icon: "🔥", p: "W" },
-  "2026-09-18": { label: "最終出勤日", sub: "さよなら、オフィス", icon: "🎊", p: "W" },
-  "2026-12-15": { label: "退職日", sub: "お疲れ様、わたし", icon: "✨", p: "P" },
-  "2026-12-16": { label: "私の次のフェーズ ★", sub: "新しい世界の、1日目", icon: "🌟", p: "N" },
+  "2027-02-28": { label: "最終出勤日", sub: "さよなら、オフィス", icon: "🎊", p: "W" },
+  "2027-05-27": { label: "退職日", sub: "お疲れ様、わたし", icon: "✨", p: "P" },
+  "2027-05-28": { label: "私の次のフェーズ ★", sub: "新しい世界の、1日目", icon: "🌟", p: "N" },
 };
-const SEA = {"2026-05-21":"小満","2026-06-05":"芒種","2026-06-10":"入梅","2026-06-21":"夏至／景晴BIRTHDAY 80歳","2026-07-02":"半夏生","2026-07-07":"七夕・小暑","2026-07-12":"MY♡BIRTHDAY","2026-07-19":"土用の丑","2026-07-23":"大暑","2026-08-07":"立秋","2026-08-13":"迎え火","2026-08-15":"お盆／景晴命日 10周忌","2026-08-16":"送り火","2026-08-23":"処暑","2026-09-07":"白露","2026-09-20":"秋のお彼岸入り","2026-09-21":"秋のお彼岸","2026-09-22":"秋分の日","2026-09-23":"秋のお彼岸","2026-09-24":"秋のお彼岸","2026-09-25":"秋のお彼岸","2026-09-26":"秋のお彼岸明け","2026-10-08":"寒露","2026-10-23":"霜降","2026-11-04":"和子BIRTHDAY 75歳","2026-11-07":"立冬","2026-11-22":"小雪","2026-12-07":"大雪","2026-12-16":"新しい始まり"};
+const SEA = {"2026-05-21":"小満","2026-06-05":"芒種","2026-06-10":"入梅","2026-06-21":"夏至／景晴BIRTHDAY 80歳","2026-07-02":"半夏生","2026-07-07":"七夕・小暑","2026-07-12":"MY♡BIRTHDAY","2026-07-19":"土用の丑","2026-07-23":"大暑","2026-08-07":"立秋","2026-08-13":"迎え火","2026-08-15":"お盆／景晴命日 10周忌","2026-08-16":"送り火","2026-08-23":"処暑","2026-09-07":"白露","2026-09-20":"秋のお彼岸入り","2026-09-21":"秋のお彼岸","2026-09-22":"秋分の日","2026-09-23":"秋のお彼岸","2026-09-24":"秋のお彼岸","2026-09-25":"秋のお彼岸","2026-09-26":"秋のお彼岸明け","2026-10-08":"寒露","2026-10-23":"霜降","2026-11-04":"和子BIRTHDAY 75歳","2026-11-07":"立冬","2026-11-22":"小雪","2026-12-07":"大雪","2027-05-28":"新しい始まり"};
 const HOL = new Set(["2026-07-20","2026-08-11","2026-09-21","2026-09-22","2026-09-23","2026-10-12","2026-11-03","2026-11-23"]);
 const RK = ["大安","赤口","先勝","友引","先負","仏滅"];
 const rk = d => RK[(d.getMonth()+d.getDate())%6];
@@ -22,9 +22,13 @@ const rk = d => RK[(d.getMonth()+d.getDate())%6];
 const DW=["日","月","火","水","木","金","土"];
 const ME=["","January","February","March","April","May","June","July","August","September","October","November","December"];
 const MJ=["","睦月","如月","弥生","卯月","皐月","水無月","文月","葉月","長月","神無月","霜月","師走"];
-const S=new Date(2026,4,14),LW=new Date(2026,8,18),RS=new Date(2026,11,15),NP=new Date(2026,11,16);
+const S=new Date(2026,4,14),LW=new Date(2027,1,28),RS=new Date(2027,4,27),NP=new Date(2027,4,28);
 const fm=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 const df=(a,b)=>Math.ceil((b-a)/864e5);
+// カレンダーの表示可能範囲（絶対月インデックス = 年*12 + (月-1)）：開始月〜次のフェーズの月
+const calIdx=(y,m)=>y*12+(m-1);
+const CAL_MIN=calIdx(2026,5);
+const CAL_MAX=calIdx(NP.getFullYear(),NP.getMonth()+1);
 const gp=ds=>{const d=new Date(ds+"T00:00:00");if(d>RS)return PH.N;if(d>LW)return PH.P;return PH.W;};
 
 
@@ -66,7 +70,8 @@ function IdbVideo({id, style}){
 }
 
 export default function App(){
-  const [mo,setMo]=useState(()=>{const n=new Date();return n.getFullYear()===2026?Math.max(5,Math.min(12,n.getMonth()+1)):5;});
+  const [calMi,setCalMi]=useState(()=>{const n=new Date();return Math.max(CAL_MIN,Math.min(CAL_MAX,calIdx(n.getFullYear(),n.getMonth()+1)));});
+  const yr=Math.floor(calMi/12), mo=(calMi%12)+1;
   const [ent,setEnt]=useState({});
   const [slogan,setSlogan]=useState("");
   const [sel,setSel]=useState(null);
@@ -260,9 +265,9 @@ export default function App(){
   const cp=gp(today);
   const nms=useMemo(()=>Object.entries(MS).find(([d])=>new Date(d+"T00:00:00")>=new Date(today+"T00:00:00")),[today]);
 
-  const fd=new Date(2026,mo-1,1).getDay(),dim=new Date(2026,mo,0).getDate();
+  const fd=new Date(yr,mo-1,1).getDay(),dim=new Date(yr,mo,0).getDate();
   const cells=[];for(let i=0;i<fd;i++)cells.push(null);for(let i=1;i<=dim;i++)cells.push(i);
-  const meCnt=Object.keys(ent).filter(k=>k.startsWith(`2026-${String(mo).padStart(2,"0")}`)&&(ent[k].diary||ent[k].note||(ent[k].todos&&ent[k].todos.length))).length;
+  const meCnt=Object.keys(ent).filter(k=>k.startsWith(`${yr}-${String(mo).padStart(2,"0")}`)&&(ent[k].diary||ent[k].note||(ent[k].todos&&ent[k].todos.length))).length;
 
   const hasEntry=ds=>{const e=ent[ds];return e&&(e.diary||e.note||e.weather||(e.todos&&e.todos.length)||(e.media&&e.media.length));};
 
@@ -340,7 +345,7 @@ export default function App(){
             </div>
           </div>
           <div className="stats" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6,padding:"12px 0"}}>
-            {[{n:dlw,l:"最終出勤",d:"09.18",c:"#B85C38",bg:"#B85C38"},{n:"paid",l:"有休残り",d:"🌴",c:"#4A7C6F",bg:"#4A7C6F"},{n:drs,l:"退職日",d:"12.15",c:"#C9A96E",bg:"#C9A96E"},{n:dnp,l:"NEXT PHASE",d:"12.16",c:"#F7F2EB",bg:"#F7F2EB"}].map((s,i)=>(
+            {[{n:dlw,l:"最終出勤",d:"02.28",c:"#B85C38",bg:"#B85C38"},{n:"paid",l:"有休残り",d:"🌴",c:"#4A7C6F",bg:"#4A7C6F"},{n:drs,l:"退職日",d:"05.27",c:"#C9A96E",bg:"#C9A96E"},{n:dnp,l:"NEXT PHASE",d:"05.28",c:"#F7F2EB",bg:"#F7F2EB"}].map((s,i)=>(
               <div key={i} style={{background:"rgba(247,242,235,.95)",borderRadius:10,padding:"10px 4px",textAlign:"center",boxShadow:"0 2px 12px rgba(0,0,0,.15)"}}>
                 <div style={{fontSize:7,color:"#9B8E82",letterSpacing:1,marginBottom:2}}>{s.d}</div>
                 {s.n==="paid"?(
@@ -369,16 +374,16 @@ export default function App(){
       {tab==="cal"&&(
         <div style={{padding:"12px 8px",animation:"fi .3s"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,padding:"0 2px"}}>
-            <button onClick={()=>setMo(m=>Math.max(5,m-1))} disabled={mo<=5} style={{width:30,height:30,border:"1px solid #EDE4D8",background:"white",borderRadius:"50%",cursor:mo>5?"pointer":"default",fontSize:11,color:"#2C2420",opacity:mo<=5?.3:1,fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center"}}>◀</button>
+            <button onClick={()=>setCalMi(i=>Math.max(CAL_MIN,i-1))} disabled={calMi<=CAL_MIN} style={{width:30,height:30,border:"1px solid #EDE4D8",background:"white",borderRadius:"50%",cursor:calMi>CAL_MIN?"pointer":"default",fontSize:11,color:"#2C2420",opacity:calMi<=CAL_MIN?.3:1,fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center"}}>◀</button>
             <div style={{textAlign:"center"}}>
-              <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:26,fontWeight:300,letterSpacing:3}}>{ME[mo]}</div>
+              <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:26,fontWeight:300,letterSpacing:3}}>{ME[mo]} <span style={{fontSize:16,color:"#9B8E82"}}>{yr}</span></div>
               <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:6,marginTop:1}}>
-                <span style={{fontFamily:"'Shippori Mincho B1',serif",fontSize:11,color:"#9B8E82"}}>{MJ[mo]}</span>
-                <span style={{fontSize:10,color:gp(`2026-${String(mo).padStart(2,"0")}-15`).color,fontWeight:500}}>{gp(`2026-${String(mo).padStart(2,"0")}-15`).label}</span>
+                <span style={{fontFamily:"'Shippori Mincho B1',serif",fontSize:11,color:"#9B8E82"}}>{yr}年 {MJ[mo]}</span>
+                <span style={{fontSize:10,color:gp(`${yr}-${String(mo).padStart(2,"0")}-15`).color,fontWeight:500}}>{gp(`${yr}-${String(mo).padStart(2,"0")}-15`).label}</span>
                 {meCnt>0&&<span style={{fontSize:8,background:"#C9A96E22",color:"#C9A96E",padding:"1px 5px",borderRadius:9}}>{meCnt}件</span>}
               </div>
             </div>
-            <button onClick={()=>setMo(m=>Math.min(12,m+1))} disabled={mo>=12} style={{width:30,height:30,border:"1px solid #EDE4D8",background:"white",borderRadius:"50%",cursor:mo<12?"pointer":"default",fontSize:11,color:"#2C2420",opacity:mo>=12?.3:1,fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center"}}>▶</button>
+            <button onClick={()=>setCalMi(i=>Math.min(CAL_MAX,i+1))} disabled={calMi>=CAL_MAX} style={{width:30,height:30,border:"1px solid #EDE4D8",background:"white",borderRadius:"50%",cursor:calMi<CAL_MAX?"pointer":"default",fontSize:11,color:"#2C2420",opacity:calMi>=CAL_MAX?.3:1,fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center"}}>▶</button>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2,marginBottom:2}}>
             {DW.map((d,i)=><div key={d} style={{textAlign:"center",fontSize:10,fontWeight:700,padding:"3px 0",color:i===0?"#B85C38":i===6?"#5B7BA5":"#9B8E82"}}>{d}</div>)}
@@ -386,9 +391,9 @@ export default function App(){
           <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2}}>
             {cells.map((day,i)=>{
               if(!day)return <div key={`e${i}`} style={{minHeight:70}}/>;
-              const ds=`2026-${String(mo).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
-              const d=new Date(2026,mo-1,day),dow=d.getDay(),ms=MS[ds],sea=SEA[ds],hol=HOL.has(ds),isT=ds===today,he=hasEntry(ds),r=rk(d);
-              const isPL=d>LW&&d<=RS,isNP=ds>="2026-12-16",ph=gp(ds),dTo=df(d,LW);
+              const ds=`${yr}-${String(mo).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+              const d=new Date(yr,mo-1,day),dow=d.getDay(),ms=MS[ds],sea=SEA[ds],hol=HOL.has(ds),isT=ds===today,he=hasEntry(ds),r=rk(d);
+              const isPL=d>LW&&d<=RS,isNP=ds>=fm(NP),ph=gp(ds),dTo=df(d,LW);
               return(
                 <div key={ds} className="dc" onClick={()=>openDay(ds)} style={{minHeight:70,borderRadius:6,padding:"3px 4px",position:"relative",overflow:"hidden",
                   background:isNP?"linear-gradient(135deg,#FFFBF0,#FFF3D6)":ms?`linear-gradient(135deg,${ph.bg},white)`:isT?"#FFFCF5":isPL?"#F6FBF8":"white",
@@ -830,7 +835,7 @@ export default function App(){
       <footer style={{textAlign:"center",padding:"24px 16px 30px",borderTop:"1px solid #EDE4D8"}}>
         <div style={{fontFamily:"'Shippori Mincho B1',serif",fontSize:13,color:"#6B5E54",lineHeight:2,letterSpacing:1}}>あの日の決断を、誇りに思え。</div>
         <div style={{fontFamily:"'Shippori Mincho B1',serif",fontSize:12,color:"#9B8E82",marginTop:4}}>この手帳には、「輝かしい未来」「希望」しかない。</div>
-        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:10,color:"#C4B8AB",letterSpacing:3,marginTop:8}}>2026.05.14 — 2026.12.16 ♦ {total} DAYS TO FREEDOM</div>
+        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:10,color:"#C4B8AB",letterSpacing:3,marginTop:8}}>2026.05.14 — 2027.05.28 ♦ {total} DAYS TO FREEDOM</div>
 
         {/* 強制同期ボタン */}
         <div style={{marginTop:20,display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
