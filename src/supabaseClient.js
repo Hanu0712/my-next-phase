@@ -307,8 +307,11 @@ export async function pushPhotosToCloud(baseCode, onProgress) {
     else failed++;
     if (onProgress) onProgress({ done, failed, skipped, total: todo.length });
   }
-  return { ok: true, done, skipped, failed, total: todo.length, alreadyUp: ids.length - todo.length };
+  return { ok: true, done, skipped, failed, total: todo.length, alreadyUp: ids.length - todo.length, totalPhotos: ids.length };
 }
+
+// クラウド無料枠（約500MB）で確実に保存できる写真の目安枚数
+export const PHOTO_CAP = 500;
 
 // クラウドから写真を復元（ローカルに無いものだけ取得してIndexedDBへ）
 export async function pullPhotosFromCloud(baseCode, onProgress) {
