@@ -238,3 +238,103 @@ export async function pushToCloud(code, data) {
     return { ok: false, reason: String(e) };
   }
 }
+
+// ─────────────────────────────────────────────────────────────
+// 写真のクラウドバックアップ（写真1枚＝syncテーブルの1行）
+// コード形式: `${元の同期コード}::p::${写真ID}`  data: { t:"image"|"video", d:dataURL }
+// 1枚ずつ小さく送るので、巨大ペイロードでの失敗を避けられる
+// ─────────────────────────────────────────────────────────────
+const PHOTO_PREFIX = "::p::";
+const MAX_PHOTO_BYTES = 9000000; // 1枚あたり上限（これを超える動画などはスキップ）
+const SYNCED_KEY = "np3-photo-synced";
+
+function loadSyncedSet() {
+  try { return new Set((JSON.parse(localStorage.getItem(SYNCED_KEY) || "[]")).map(String)); }
+  catch { return new Set(); }
+}
+function saveSyncedSet(set) {
+  try { localStorage.setItem(SYNCED_KEY, JSON.stringify([...set])); } catch {}
+}
+
+// localStorageのテキストデータから、参照されている写真ID一覧を集める
+function collectMediaIds(localData) {
+  const safe = (s, f) => { try { return s == null ? f : JSON.parse(s); } catch { return f; } };
+  const out = [];
+  const seen = new Set();
+  const push = (arr) => {
+    for (const m of (arr || [])) {
+      if (m && m.id != null && (m.type === "image" || m.type === "video")) {
+        const id = String(m.id);
+        if (!seen.has(id)) { seen.add(id); out.push({ id, type: m.type }); }
+      }
+    }
+  };
+  const ent = safe(localData["np3-ent"], {});
+  for (const k of Object.keys(ent)) push(ent[k].media);
+  for (const key of ["np3-fpages", "np3-ipages", "np3-vboard"]) {
+    for (const p of safe(localData[key], [])) push(p.media);
+  }
+  return out;
+}
+
+async function toDataURL(d) {
+  if (typeof d === "string") return d;
+  if (typeof Blob !== "undefined" && d instanceof Blob) {
+    return await new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result);
+      r.onerror = () => rej(r.error);
+      r.readAsDataURL(d);
+    });
+  }
+  return null;
+}
+
+// 未バックアップの写真だけクラウドへ送る
+export async function pushPhotosToCloud(baseCode, onProgress) {
+  if (!baseCode) return { ok: false, reason: "no-code" };
+  const ids = collectMediaIds(readLocalData());
+  const synced = loadSyncedSet();
+  const todo = ids.filter(it => !synced.has(it.id));
+  let done = 0, skipped = 0, failed = 0;
+  for (const it of todo) {
+    const raw = await idbGet(it.id);
+    if (!raw) { skipped++; continue; }
+    const url = await toDataURL(raw);
+    if (!url || url.length > MAX_PHOTO_BYTES) { skipped++; continue; }
+    const res = await pushToCloud(`${baseCode}${PHOTO_PREFIX}${it.id}`, { t: it.type, d: url });
+    if (res.ok) { done++; synced.add(it.id); saveSyncedSet(synced); }
+    else failed++;
+    if (onProgress) onProgress({ done, failed, skipped, total: todo.length });
+  }
+  return { ok: true, done, skipped, failed, total: todo.length, alreadyUp: ids.length - todo.length };
+}
+
+// クラウドから写真を復元（ローカルに無いものだけ取得してIndexedDBへ）
+export async function pullPhotosFromCloud(baseCode, onProgress) {
+  if (!baseCode) return { ok: false, reason: "no-code" };
+  const ids = collectMediaIds(readLocalData());
+  const synced = loadSyncedSet();
+  let restored = 0, missing = 0, already = 0;
+  for (const it of ids) {
+    const have = await idbGet(it.id);
+    if (have) { already++; continue; }
+    const res = await pullFromCloud(`${baseCode}${PHOTO_PREFIX}${it.id}`);
+    if (res.ok && res.data && res.data.d) {
+      let val = res.data.d;
+      if (res.data.t === "video") {
+        try { val = await (await fetch(val)).blob(); } catch {}
+      }
+      await idbPut(it.id, val);
+      synced.add(it.id);
+      restored++;
+      if (typeof window !== "undefined" && restored % 4 === 0) {
+        window.dispatchEvent(new Event("np3-photos-updated"));
+      }
+    } else missing++;
+    if (onProgress) onProgress({ restored, missing, already, total: ids.length });
+  }
+  saveSyncedSet(synced);
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("np3-photos-updated"));
+  return { ok: true, restored, missing, already, total: ids.length };
+}
